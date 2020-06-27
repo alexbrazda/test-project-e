@@ -25,7 +25,7 @@ public class PlayerMovement_new : MonoBehaviour {
     
     public float counterMovement = 0.175f;
     private float threshold = 0.01f;
-    public float maxSlopeAngle = 35f;
+    public float maxSlopeAngle = 45f;
 
     //Crouch & Slide
     private Vector3 crouchScale = new Vector3(1, 0.5f, 1);
