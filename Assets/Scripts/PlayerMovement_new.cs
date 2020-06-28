@@ -2,6 +2,7 @@
 
 using System;
 using UnityEngine;
+using System.Collections;
 
 public class PlayerMovement_new : MonoBehaviour {
 
@@ -41,14 +42,21 @@ public class PlayerMovement_new : MonoBehaviour {
     
     //Input
     float x, y;
-    bool jumping, sprinting, crouching;
+    bool jumping, sprinting, crouching, dashing;
     
     //Sliding
     private Vector3 normalVector = Vector3.up;
     private Vector3 wallNormalVector;
 
+    //Dashing
+    [SerializeField] float dashForce;
+    [SerializeField] float dashDuration;
+    [SerializeField] float dashCooldown;
+    bool dashOnCooldown;
+
     void Awake() {
         rb = GetComponent<Rigidbody>();
+        dashOnCooldown = false;
     }
     
     void Start() {
@@ -65,6 +73,8 @@ public class PlayerMovement_new : MonoBehaviour {
     private void Update() {
         MyInput();
         Look();
+
+        Dash();
     }
 
     /// <summary>
@@ -75,12 +85,49 @@ public class PlayerMovement_new : MonoBehaviour {
         y = Input.GetAxisRaw("Vertical");
         jumping = Input.GetButton("Jump");
         crouching = Input.GetKey(KeyCode.LeftControl);
+
+        // Dash input
+        dashing = Input.GetKey(KeyCode.LeftShift);
       
         //Crouching
         if (Input.GetKeyDown(KeyCode.LeftControl))
             StartCrouch();
         if (Input.GetKeyUp(KeyCode.LeftControl))
             StopCrouch();
+    }
+
+    private void Dash() {
+        if(dashing && !dashOnCooldown) {
+            StartCoroutine(DashCast());
+            StartCoroutine(DashCooldown());
+        }
+    }
+
+    private IEnumerator DashCast() {
+        dashOnCooldown = true;
+        Debug.Log("On cooldown");
+
+        if(x < 0) {     // Dash left
+            rb.AddForce(orientation.transform.right * x * dashForce * Time.deltaTime, ForceMode.VelocityChange);  
+        } else if (x > 0) { // Dash right
+            rb.AddForce(orientation.transform.right * x *dashForce * Time.deltaTime, ForceMode.VelocityChange);  
+        } else if (y < 0) { // Dash backward
+            rb.AddForce(orientation.transform.forward * y * dashForce * Time.deltaTime, ForceMode.VelocityChange);  
+        } else if (y > 0) { // Dash forward
+            rb.AddForce(orientation.transform.forward * y * dashForce * Time.deltaTime, ForceMode.VelocityChange);  
+        } else {      // Default Dash is forward
+            rb.AddForce(orientation.transform.forward * dashForce * Time.deltaTime, ForceMode.VelocityChange);  
+        }
+
+        yield return new WaitForSeconds(dashDuration);
+
+        rb.velocity = Vector3.zero;
+    }
+
+    private IEnumerator DashCooldown() {
+        yield return new WaitForSeconds(dashCooldown);
+        Debug.Log("Cooldown ready");
+        dashOnCooldown = false;
     }
 
     private void StartCrouch() {
