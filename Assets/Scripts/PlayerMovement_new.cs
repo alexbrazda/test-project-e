@@ -67,10 +67,13 @@ public class PlayerMovement_new : MonoBehaviour {
 
     
     private void FixedUpdate() {
-        Movement();
+        //Movement(); // movement was here before
+        //Dash();
     }
 
     private void Update() {
+        Movement();
+        
         MyInput();
         Look();
 
@@ -108,16 +111,18 @@ public class PlayerMovement_new : MonoBehaviour {
         Debug.Log("On cooldown");
 
         if(x < 0) {     // Dash left
-            rb.AddForce(orientation.transform.right * x * dashForce * Time.deltaTime, ForceMode.VelocityChange);  
+            rb.AddForce(orientation.transform.right * x * dashForce * Time.deltaTime, ForceMode.Impulse);  
         } else if (x > 0) { // Dash right
-            rb.AddForce(orientation.transform.right * x *dashForce * Time.deltaTime, ForceMode.VelocityChange);  
+            rb.AddForce(orientation.transform.right * x * dashForce * Time.deltaTime, ForceMode.Impulse);  
         } else if (y < 0) { // Dash backward
-            rb.AddForce(orientation.transform.forward * y * dashForce * Time.deltaTime, ForceMode.VelocityChange);  
+            rb.AddForce(orientation.transform.forward * y * dashForce * Time.deltaTime, ForceMode.Impulse);  
         } else if (y > 0) { // Dash forward
-            rb.AddForce(orientation.transform.forward * y * dashForce * Time.deltaTime, ForceMode.VelocityChange);  
+            rb.AddForce(orientation.transform.forward * y * dashForce * Time.deltaTime, ForceMode.Impulse);  
         } else {      // Default Dash is forward
-            rb.AddForce(orientation.transform.forward * dashForce * Time.deltaTime, ForceMode.VelocityChange);  
+            rb.AddForce(orientation.transform.forward * dashForce * Time.deltaTime, ForceMode.Impulse);  
         }
+
+        Debug.Log("rb velocity " + rb.velocity);
 
         yield return new WaitForSeconds(dashDuration);
 
@@ -160,7 +165,7 @@ public class PlayerMovement_new : MonoBehaviour {
         if (readyToJump && jumping) Jump();
 
         //Set max speed
-        float maxSpeed = this.maxSpeed;
+        float maxSpeed = this.maxSpeed * Time.deltaTime;
         
         //If sliding down a ramp, add force down so player stays grounded and also builds speed
         if (crouching && grounded && readyToJump) {
@@ -179,16 +184,21 @@ public class PlayerMovement_new : MonoBehaviour {
         
         // Movement in air
         if (!grounded) {
-            multiplier = 0.5f;
-            multiplierV = 0.5f;
+            multiplier = 1f; // before 0.5f
+            multiplierV = 1f; // before 0.5f
         }
         
         // Movement while sliding
         if (grounded && crouching) multiplierV = 0f;
 
+        // If you are dashing you cannot move 
+        if(dashing) return;
+
         //Apply forces to move player
         rb.AddForce(orientation.transform.forward * y * moveSpeed * Time.deltaTime * multiplier * multiplierV);
         rb.AddForce(orientation.transform.right * x * moveSpeed * Time.deltaTime * multiplier);
+
+        Debug.Log("rb vel in movement " + rb.velocity);
     }
 
     private void Jump() {
