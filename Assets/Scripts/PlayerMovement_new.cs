@@ -165,7 +165,8 @@ public class PlayerMovement_new : MonoBehaviour {
         if (readyToJump && jumping) Jump();
 
         //Set max speed
-        float maxSpeed = this.maxSpeed * Time.deltaTime;
+//      float maxSpeed = this.maxSpeed * Time.deltaTime; // To make it ref. to PC clock - doesn't work...
+        float maxSpeed = this.maxSpeed;
         
         //If sliding down a ramp, add force down so player stays grounded and also builds speed
         if (crouching && grounded && readyToJump) {
@@ -277,13 +278,13 @@ public class PlayerMovement_new : MonoBehaviour {
         float moveAngle = Mathf.Atan2(rb.velocity.x, rb.velocity.z) * Mathf.Rad2Deg;
 
         float u = Mathf.DeltaAngle(lookAngle, moveAngle);
-        float v = 90 - u;
+//        float v = 90 - u;
 
-        float magnitue = rb.velocity.magnitude;
-        float yMag = magnitue * Mathf.Cos(u * Mathf.Deg2Rad);
-        float xMag = magnitue * Mathf.Cos(v * Mathf.Deg2Rad);
+        float magnitude = rb.velocity.magnitude;
+        float zMag = magnitude * Mathf.Cos(u * Mathf.Deg2Rad); //this is Z
+        float xMag = magnitude * Mathf.Sin(u * Mathf.Deg2Rad);
         
-        return new Vector2(xMag, yMag);
+        return new Vector2(xMag, zMag);
     }
 
     private bool IsFloor(Vector3 v) {
